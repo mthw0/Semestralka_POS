@@ -54,7 +54,6 @@ void Plocha::changeColor(int x, int y)
 
 bool Plocha::isWall(int x, int y)
 {
-	
 	if (x < 0)
 		return true;
 	

@@ -6,7 +6,7 @@ class Mravec
 {
 private:
 	Plocha* board;
-	int xcoord, ycoord, direction;
+	int xcoord, ycoord, smer;
 
 public:
 	Mravec(Plocha*, int, int);

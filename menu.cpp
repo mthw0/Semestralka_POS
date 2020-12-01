@@ -43,5 +43,8 @@ int menu()
 
         case 5:
             return 5;
-        }
+
+        case 0:
+            return 0;
+		}
 }
