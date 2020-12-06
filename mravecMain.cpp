@@ -1,8 +1,8 @@
-//#include "heap_monitor.h"
+  //#include "heap_monitor.h"
 #include "menu.hpp"
-#include "TCP_Client.h"
 #include <iostream>
 #include <ctime>
+#include <vector>
 using std::cout;
 using std::cin;
 using std::endl;
@@ -11,12 +11,12 @@ using std::endl;
 int main()
 {
 	int vyber = menu();
-    int riadok, stlpec, pocetKrokov, velkostRiadku, velkostStlpca, aktualnyKrok = 0;
+    int riadok=0, stlpec=0, pocetKrokov=0, velkostRiadku=0, velkostStlpca=0, aktualnyKrok, pocetMravcov = 0;
     char ** pole_kopia;
 
     srand(time(0));
 
-	while (vyber == 1)
+	while (vyber == 6)
 	{
 		cout << "Zadajte pocet stĺpcov 10 az 50:" << endl;
         scanf("%u",&velkostRiadku);
@@ -111,7 +111,7 @@ int main()
 
 
 		Plocha *plocha = new Plocha(pole, velkostRiadku, velkostStlpca);
-		Mravec mravec(plocha, riadok, stlpec);
+		Mravec mravec(plocha, riadok, stlpec, 0);
 
 		
 		while (aktualnyKrok < pocetKrokov)
@@ -123,7 +123,7 @@ int main()
 			
 			mravec.moveAnt(mravecRiadok, mravecStlpec);
 
-			printToScreen(plocha, mravec);
+			printToScreen1(plocha, mravec);
 
 			int novyRiadok = mravec.getRiadok();
 			int novyStlpec = mravec.getStlpec();
@@ -202,7 +202,7 @@ int main()
         scanf("%u",&pocetKrokov);
         //char ** pole = pole_kopia;
         Plocha *plocha = new Plocha(pole, velkostRiadku, velkostStlpca);
-        Mravec mravec(plocha, riadok, stlpec);
+        Mravec mravec(plocha, riadok, stlpec, 0);
 
         while (aktualnyKrok < pocetKrokov) //jeden krok
         {
@@ -213,7 +213,7 @@ int main()
 
             mravec.moveAnt(mravecRiadok, mravecStlpec);
 
-            printToScreen(plocha, mravec);
+            printToScreen1(plocha, mravec);
 
             int novyRiadok = mravec.getRiadok();
             int novyStlpec = mravec.getStlpec();
@@ -232,28 +232,6 @@ int main()
         vyber = menu();
 
     }
-    while (vyber == 4) {
-        char* adresa = "localhost";
-        TCP_Client tcpc(adresa,6000);
-        int socket = tcpc.vytvorSpojenie();
-        tcpc.posliSpravu(socket,"save");
-        auto sprava = tcpc.prijmiSpravu(socket); // prijme spravu OK
-        tcpc.posliSpravu(socket, nullptr); //TODO: vytovrenie spravy a odoslanie
-        sprava = tcpc.prijmiSpravu(socket);
-        if (sprava=="OK") cout<<"Uloženie na server úspešné." << endl;
-        else cout << "Pri nahrávaní súboru na server doslo k chybe." << endl;
-        tcpc.zatvorSpojenie();
-    }
-    while (vyber == 5) {
-        char* adresa = "localhost";
-        TCP_Client tcpc(adresa,6000);
-        int socket = tcpc.vytvorSpojenie();
-        tcpc.posliSpravu(socket,"load");
-        auto sprava = tcpc.prijmiSpravu(socket); // prijme spravu OK
-        tcpc.posliSpravu(socket, "OK");
-        sprava = tcpc.prijmiSpravu(socket); // TODO: prijatie odpovede
-        tcpc.zatvorSpojenie();
-    }
 	
 	if (vyber == 0) {
         for (int row = 0; row < velkostRiadku; row++)
@@ -263,4 +241,173 @@ int main()
         return 0;
 	}
 
+    while (vyber == 1) {
+        cout << "Zadajte pocet stĺpcov 10 az 50:" << endl;
+        scanf("%u",&velkostRiadku);
+
+        while (velkostRiadku > 50 || velkostRiadku < 10)
+        {
+            cout << "Zadane cislo nepatri do rozsahu 10-50, skuste znova." << endl;
+            scanf("%u",&velkostRiadku);
+        }
+
+        cout << "Zadajte pocet riadkov 10 az 50:" << endl;
+        scanf("%u",&velkostStlpca);
+
+        while (velkostStlpca > 50 || velkostStlpca < 10)
+        {
+            cout << "Zadane cislo nepatri do rozsahu 10-50, skuste znova." << endl;
+            scanf("%u",&velkostStlpca);
+        }
+
+        cout << "Chcete nahodne generovanu mapu? 0/1" <<endl;
+
+        int ano_nie;
+        scanf("%u",&ano_nie);
+
+        while (ano_nie>1)
+        {
+            cout<< "Zadali ste neplatnu moznost. Zadajte 0 alebo 1." << endl;
+            scanf("%u",&ano_nie);
+        }
+
+
+        cout << "Zadajte pocet mravcov"<< endl;
+        scanf("%u",&pocetMravcov);
+
+        while (pocetMravcov > 0 && pocetMravcov < 0)
+        {
+            cout << "Bolo zadane zle cislo";
+            scanf("%u",&pocetMravcov);
+        }
+
+        cout << "Zadajte pocet krokov, ktore maju mravec spravit:" << endl;
+        scanf("%u",&pocetKrokov);
+
+        char **pole = new char*[velkostRiadku];
+        for (int riadok = 0; riadok < velkostRiadku; riadok++)
+            pole[riadok] = new char[velkostStlpca];
+
+        if (ano_nie==1) {
+            for (int i = 0;i<velkostStlpca ; i++)
+                for (int j=0;j<velkostRiadku;j++)
+                    if (rand()%2==0)
+                        pole[i][j]=' ';
+                    else pole[i][j]='#';
+
+        }
+        else {
+            cout << "Zadajte pocet ciernych poli." << endl;
+            int pocet_poli;
+            scanf("%u",&pocet_poli);
+            while (pocet_poli) {
+                int cierne_pole_x, cierne_pole_y;
+
+                cout << "Zadajte suradnicu cierneho pola, suradnica x:"<< endl;
+                scanf("%u", &cierne_pole_x);
+
+                while (cierne_pole_x < 0 || cierne_pole_x>=velkostStlpca)
+                {
+                    cout << "Zadane cislo nepatri do rozsahu, skuste znova";
+                    scanf("%u",&cierne_pole_x);
+                }
+
+                cout << "Zadajte suradnicu cierneho pola, suradnica y:"<< endl;
+                scanf("%u", &cierne_pole_y);
+
+                while (cierne_pole_y < 0 || cierne_pole_y>=velkostRiadku)
+                {
+                    cout << "Zadane cislo nepatri do rozsahu, skuste znova";
+                    scanf("%u",&cierne_pole_y);
+                }
+                pole[cierne_pole_x][cierne_pole_y]='#';
+                pocet_poli--;
+            }
+        }
+
+
+        Plocha *plocha = new Plocha(pole, velkostRiadku, velkostStlpca);
+        std::vector<Mravec> mravce;
+
+        for(int x=0; x < pocetMravcov; x++) {
+            cout << "Zadajte pociatocne umiestnenie mravca cislo: "  << x << "! suradnica x:" << endl;
+            scanf("%u", &riadok);
+
+            while (riadok < 0 && riadok > velkostStlpca) {
+                cout << "Zadane cislo nepatri do rozsahu, skuste znova";
+                scanf("%u", &riadok);
+            }
+
+            cout << "Zadajte pociatocne umiestnenie mravca cislo: "  << x << "! suradnica y:" << endl;
+            scanf("%u", &stlpec);
+
+            while (stlpec < 0 && stlpec > velkostRiadku) {
+                cout << "Zadane cislo nepatri do rozsahu, skuste znova";
+                scanf("%u", &stlpec);
+            }
+
+
+
+            cout << "Chcete aby mal mravec normalnu logiku alebo inverznu? 0/1" <<endl;
+
+            int inverzna;
+            scanf("%u",&inverzna);
+
+            while (inverzna>1)
+            {
+                cout<< "Zadali ste neplatnu moznost. Zadajte 0 alebo 1." << endl;
+                scanf("%u",&inverzna);
+            }
+            Mravec *m = new Mravec(plocha, riadok, stlpec, inverzna);
+            mravce.push_back(*m);
+        }
+
+        aktualnyKrok = 0;
+        while (aktualnyKrok < pocetKrokov)
+        {
+            aktualnyKrok++;
+            for(int x = 0; x < mravce.size(); x++) {
+                for(int y = x + 1; y < mravce.size(); y++) {
+                    if(mravce[x].getRiadok() == mravce[y].getRiadok() && mravce[x].getStlpec() == mravce[y].getStlpec()) {
+                        mravce.erase(mravce.begin() + x);
+                    }
+                }
+            }
+
+
+            for(auto &prvok : mravce) {
+                int mravecRiadok = prvok.getRiadok();
+                int mravecStlpec = prvok.getStlpec();
+
+                if(prvok.getInverzna() == 0) {
+                    prvok.moveAnt(mravecRiadok, mravecStlpec);
+                } else {
+                    prvok.moveAnt2(mravecRiadok, mravecStlpec);
+                }
+
+            }
+
+            printToScreen(plocha, mravce);
+
+
+            cout << "Krok c.: " << aktualnyKrok << "." << endl;
+            cout << "Enterom pokracujte na dalsi krok." << endl;
+            //cin.get();
+            sleep(1);
+            //TODO: pozastavenie a pokracovanie
+        }
+
+        pole_kopia=pole;
+        delete[] plocha;
+
+        for (auto mazany: mravce) {
+            delete &mazany;
+        }
+
+        mravce.clear();
+        vyber = menu();
+
+
+
+    }
 }
